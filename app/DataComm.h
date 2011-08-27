@@ -12,6 +12,7 @@
 
 // start packet flags
 const char ESC_CHAR =  38; //0xFF
+#define EOD_CHAR      0xFC
 #define SOD_CHAR      0xFE
 #define SOH_CHAR      0xFD
 #define NULL_CHAR     0
@@ -24,11 +25,11 @@ const char ESC_CHAR =  38; //0xFF
 #define NULL_TX       -1
 
 // set parameters
-#define HEADER_SIZE   11
-#define HEADER_OFFSET 8
+#define HEADER_SIZE   5
 #define MAX_DATASETS  4
 #define MAX_PCKT_SIZE 512
 #define MAX_COMMAND_SIZE 8
+#define MAX_ESC_SIZE 2
 
 // cmd definitions
 #define WRITE_CMD  32
@@ -46,9 +47,12 @@ const char ESC_CHAR =  38; //0xFF
 #define HIGH_PASS_CMD 77
 #define SETTLING_TIME_CMD 78
 
+#define START_PCKT 90
+#define END_PCKT 91
+#define WRITE_CHAR 93
+#define READ_CHAR 94
 
 #define VREF_CMD  81
- 
 
 // data set ids
 #define DATA_ID_RAW   48
@@ -56,6 +60,9 @@ const char ESC_CHAR =  38; //0xFF
 #define DATA_ID_OFY   50
 #define DATA_ID_FPS   51
 #define DATA_CMD_VAL  52
+
+#define WRITE_MODE 10
+#define READ_MODE 11
 
 
 typedef struct DataSets{
@@ -71,6 +78,7 @@ typedef struct CmdWrap{
  
   char Size;
   unsigned char Bytes[MAX_COMMAND_SIZE];
+  unsigned char ESCBytes[MAX_ESC_SIZE];
 }CmdWrap;
   
 
@@ -83,7 +91,8 @@ public:
   //functions
   bool InitDS(int inDSID, int Rows, int Cols, unsigned char * pointer);
   void UpdateDataPointer(int inDSID, unsigned char * pointer);
-  void UpdateTxData();
+  void SetActiveArray(int inDSID);
+  void InitHeader(int inDSID);
   void SetDSActive(int inDSID, bool Enable);
   bool TxIsNull(void);
   void UpdateResolution(int inDSID, int Rows, int Cols);
@@ -95,12 +104,10 @@ public:
   unsigned char Header[HEADER_SIZE];
   CmdWrap Cmd;
   bool TxActive;
+  int DSIdx;
+  char Mode;
   
 private:
-  //functions
-  void InitHeader();
-  void FillHeader();
-  
   //varaibles
   DataSets DS[MAX_DATASETS]; 
   int InitIdx, ActiveTx;

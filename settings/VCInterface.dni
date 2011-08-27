@@ -28,7 +28,7 @@ ActionState=1
 Enabled=0
 ShowSource=1
 [DebugChecksum]
-Checksum=-719886862
+Checksum=1294133410
 [DisAssemblyWindow]
 NumStates=_ 1
 State 1=_ 1
@@ -48,6 +48,12 @@ Graph=0
 Symbiont=0
 [BreakpointUsageDialog]
 Placement=_ 2182 461 2619 739
+[Disassemble mode]
+mode=0
+[Breakpoints]
+Bp0=_ "STD_CODE" "{$PROJ_DIR$\app\main.cpp}.95.5@1" 1 0 0 0 "" 0 ""
+Bp1=_ "STD_CODE" "{$PROJ_DIR$\app\main.cpp}.479.6@1" 1 0 0 0 "" 0 ""
+Count=2
 [Log file]
 LoggingEnabled=_ 0
 LogFile=_ ""
@@ -55,11 +61,6 @@ Category=_ 0
 [TermIOLog]
 LoggingEnabled=_ 0
 LogFile=_ ""
-[Disassemble mode]
-mode=0
-[Breakpoints]
-Bp0=_ "STD_CODE" "{$PROJ_DIR$\app\main.cpp}.95.5@1" 1 0 0 0 "" 0 ""
-Count=1
 [Aliases]
 A0=_ "F:\Dropbox\VCInterfaceEval\app\main.cpp" "C:\Users\Alison Leonard\Dropbox\VCInterfaceEval\app\main.cpp"
 A1=_ "F:\IAR\VCInterfaceEval\app\main.cpp" "C:\Users\Alison Leonard\Dropbox\VCInterfaceEval\app\main.cpp"

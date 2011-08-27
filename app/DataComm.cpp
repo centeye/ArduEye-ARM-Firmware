@@ -14,10 +14,13 @@
 DataManager::DataManager()
 {
   InitIdx = 0;
-  TxDataSize = 0;
   ActiveTx = NULL_TX;
   TxActive = false;
+  DSIdx = 0;
+  TxDataSize = 0;
+  Mode = WRITE_MODE;
 }
+
 DataManager::~DataManager()
 {
   //nothing to destroy
@@ -48,6 +51,7 @@ bool DataManager::TxIsNull(void)
   else
     return false;
 }
+
 void DataManager::SetDSActive(int inDSID, bool Enable)
 {
   int Idx = 0;
@@ -67,6 +71,7 @@ void DataManager::SetDSActive(int inDSID, bool Enable)
     }
   } 
 }
+
 void DataManager::UpdateDataPointer(int inDSID, unsigned char * pointer)
 {
   int Idx = 0;
@@ -90,92 +95,54 @@ void DataManager::UpdateResolution(int inDSID, int Rows, int Cols)
     DS[Idx].Cols = Cols;
   }
 }
+
 void DataManager::ResetTX()
 {
   ActiveTx = NULL_TX;
-  UpdateTxData();
+  DSIdx = 0;
 }
-
   
 // UpdateTxData prepares a new packet for txmission.  Each packet contains a 
 // header and a data section.  DataManager keeps track of the packet sequence
 // and dataset sequence
-void DataManager::UpdateTxData()
+void DataManager::SetActiveArray(int inDSID)
 { 
-  // if ActiveTx is not set, find first active dataset
-  if(ActiveTx == NULL_TX)
-  {
-    ActiveTx = 0;
-    while((DS[ActiveTx].Active == false) && (ActiveTx < MAX_DATASETS))
-      ActiveTx++;
-    
-    InitHeader(); 
-  }  
-  // if last datset is done sending, find next active dataset
-  else if (Header[10] == 1)
-  {
-    ActiveTx++;
-    while((DS[ActiveTx].Active == false) && (ActiveTx < MAX_DATASETS))
-      ActiveTx++;
-    
-    InitHeader(); 
-  }
- 
-  FillHeader();
+  // find index that matches DSID
+  for (int i = 0; i < MAX_DATASETS; i++)
+    if(DS[i].DSID == inDSID)
+    {
+      ActiveTx = i;
+      break;
+    }
   
   // update data array pointer
    if(ActiveTx != NULL_TX)
-      Array = DS[ActiveTx].ArrayPointer + DS[ActiveTx].DSIdx;
+   {
+      Array = DS[ActiveTx].ArrayPointer;
+      TxDataSize = DS[ActiveTx].Size;
+   }
 }
   
-////Header: ESC, 2bytes pckt size, 1 byte DataId, 1 byte rows, 1 byte cols , 2Bytes dataIndex, 1 Byte EODS
-void DataManager::InitHeader()
-{ 
-// send null header (packet size = 0) if no active dataset  
-  if(((ActiveTx >= MAX_DATASETS) || DS[ActiveTx].Active == false))
+////Header: 1 byte DataId, 2 byte rows, 2 byte cols 
+void DataManager::InitHeader(int inDSID)
+{  
+  // find index that matches DSID
+  for (int i = 0; i < MAX_DATASETS; i++)
+    if(DS[i].DSID == inDSID)
+    {
+      ActiveTx = i;
+      break;
+    }
+  if(ActiveTx != NULL_TX)
   {
-    Header[1] = Header[2] = 0;
+    // Init header for dataset, clear Dataset index
+    Header[0] = inDSID + 1;
+    Header[1] = DS[ActiveTx].Rows >> 8;
+    Header[2] = DS[ActiveTx].Rows & 0xFF;
+    Header[3] = DS[ActiveTx].Cols >> 8;
+    Header[4] = DS[ActiveTx].Cols & 0xFF;
     
-    ActiveTx = NULL_TX;
-    return;
+    Array = Header;
+    TxDataSize = 5;
   }
-  
-  // Init header for dataset, clear Dataset index
-  Header[0] = ESC_CHAR;
-  Header[3] = DS[ActiveTx].DSID;
-  Header[4] = DS[ActiveTx].Rows >> 8;
-  Header[5] = DS[ActiveTx].Rows & 0xFF;
-  Header[6] = DS[ActiveTx].Cols >> 8;
-  Header[7] = DS[ActiveTx].Cols & 0xFF;
-  DS[ActiveTx].DSIdx = 0;
-  TxDataSize = 0;
 }
-
-void DataManager::FillHeader()
-{
-  // return if no active dataset
-  if(ActiveTx == NULL_TX)
-    return;
-  
-  // update DSIdx and fill header accordingly
-  DS[ActiveTx].DSIdx += TxDataSize;
-  if((DS[ActiveTx].Size - DS[ActiveTx].DSIdx) <= 0)
-    DS[ActiveTx].DSIdx = 0;   
-
-  if((DS[ActiveTx].Size - DS[ActiveTx].DSIdx) <= MAX_PCKT_SIZE)
-  {
-    TxDataSize =  DS[ActiveTx].Size - DS[ActiveTx].DSIdx;
-    Header[10] = 1;
-  }
-  else
-  {
-    TxDataSize = MAX_PCKT_SIZE;
-    Header[10] = 0;
-  }
-  Header[1] = (TxDataSize + HEADER_OFFSET) >> 8;
-  Header[2] = (TxDataSize + HEADER_OFFSET) & 0xFF;
-  Header[8] = DS[ActiveTx].DSIdx >> 8;
-  Header[9] = DS[ActiveTx].DSIdx & 0xFF;
-
-}
- 

@@ -38,7 +38,7 @@
 DataManager Dat;
 ImageProcessing ImgP;
 Timers TimE;
-unsigned int  SIdx = 0, CIdx = 0;
+unsigned int  EIdx = 0, CIdx = 0, DIdx = 0;
 unsigned short  MinPix = 0xFFFF;
 unsigned short  MaxPix  = 0;
 bool SPI_Done = FALSE;
@@ -104,6 +104,34 @@ void ADCHandler(void)
   
   
 }
+/*************************************************************************
+ * Function Name: ParseEsc
+ * Parameters: void
+ * Return: void
+ *
+ * Description:
+ *		
+ *************************************************************************/
+void ParseESC(void)
+{  
+  switch(Dat.Cmd.ESCBytes[1])
+  {
+  case ESC_CHAR:
+    Dat.Cmd.Bytes[CIdx] = Dat.Cmd.ESCBytes[1];
+    CIdx++;
+    break;
+  case WRITE_CHAR:
+    Dat.Mode = WRITE_MODE;
+    break;
+  case READ_CHAR:
+    Dat.Mode = READ_MODE;
+    break;
+  case START_PCKT:
+  default:
+    break;
+  }
+  EIdx = 0;
+}
 
 /*************************************************************************
  * Function Name: ParseCommand
@@ -167,13 +195,28 @@ void ParseCommand(void)
     break;
   case READ_CMD:
     VC.ReadCommand(Dat.Cmd.Bytes[1]);
+    break;
+  case SOH_CHAR:
+    Dat.InitHeader(Dat.Cmd.Bytes[1]);
+    SPI_I2S_SendData(SPI2, Dat.Array[0]);
+    DIdx = 1;
+    break;
+  case SOD_CHAR:
+    Dat.SetActiveArray(Dat.Cmd.Bytes[1]);
+    SPI_I2S_SendData(SPI2, Dat.Array[0]);
+    DIdx = 1;
+    break;
+  case EOD_CHAR:
+    SPI_Done = true;
+    break;
   default:
     break;
   }
+  CIdx = 0;
 }
 
 /*************************************************************************
- * Function Name: ADCHandler
+ * Function Name: SPIHandler
  * Parameters: void
  * Return: void
  *
@@ -190,103 +233,28 @@ void SPIHandler(void)
     ByteIn = SPI_I2S_ReceiveData(SPI2);
     // first byte is Start of CMD, HeaderRequest, or DataRequest
     // all other bytes are null for data/header request
-    switch (ByteIn)
+    
+    if((ByteIn == ESC_CHAR) || (EIdx > 0))
     {
-    // start command byte
-    case ESC_CHAR:
-      Process = CMD_RECEIVE;
-      CIdx = 0;
-      break;
-    // header request byte  
-    case SOH_CHAR:
-      SIdx = 0;
-      SPI_I2S_SendData(SPI2, Dat.Header[SIdx]);
-      SIdx++;
-      Process = TX_HEAD;
-      break;    
-    // data request byte  
-    case SOD_CHAR:
-      SIdx = 0;
-      SPI_I2S_SendData(SPI2, Dat.Array[SIdx]);
-      SIdx++;
-      Process = TX_DAT;
-      break;
-    // data tx byte
-    case NULL_CHAR:
-      // send data according to process request
-      switch (Process)
-      { 
-      // header process
-      case TX_HEAD:
-          SPI_I2S_SendData(SPI2, Dat.Header[SIdx]);
-        SIdx++;
-        // when header is sent, reset to null process
-        if(SIdx == HEADER_SIZE)
-          Process = NULL_PROCESS;
-        break;
-      // data process
-      case TX_DAT:
-        SPI_I2S_SendData(SPI2, Dat.Array[SIdx]);
-        SIdx++;
-        // when data packet is finished, update Tx Data for next packet
-        if(SIdx >= Dat.TxDataSize)
-        {
-          Dat.UpdateTxData();
-          Process = NULL_PROCESS;
-          if(Dat.TxIsNull())
-            SPI_Done = true;
-        }
-        break;
-      case CMD_RECEIVE:
-        Dat.Cmd.Bytes[CIdx-1] = ByteIn;
-        // when full cmd has been received, parse      
-        if(CIdx == Dat.Cmd.Size)
-        {
-          ParseCommand();
-          Process = NULL_PROCESS;  
-          CMD_PORT->ODR |= CMD_MASK;
-        }
-        CIdx++;
-      case NULL_PROCESS:
-      default:
-        break;
-      }
-      break;
-    // if data is not null, it is a command byte 
-    default:
-      if(Process == CMD_RECEIVE)
+      Dat.Cmd.ESCBytes[EIdx] = ByteIn;
+      EIdx++;
+      if(EIdx == 2)
+        ParseESC();
+    }
+    else if(Dat.Mode == WRITE_MODE)
+    {
+      Dat.Cmd.Bytes[CIdx] = ByteIn;
+      CIdx++;
+      if(ByteIn == END_PCKT)
+        ParseCommand();
+    }
+    else if (Dat.Mode == READ_MODE)
+    {
+      if(DIdx < Dat.TxDataSize)
       {
-        // first cmd byte is command size
-        if(CIdx == 0)
-          Dat.Cmd.Size = ByteIn;
-        // all remaining bytes are command bytes
-        else
-          Dat.Cmd.Bytes[CIdx-1] = ByteIn;
-        // when full cmd has been received, parse      
-        if(CIdx == Dat.Cmd.Size)
-        {
-          ParseCommand();
-          Process = NULL_PROCESS;  
-          CMD_PORT->ODR |= CMD_MASK;
-        }
-        CIdx++;
+        SPI_I2S_SendData(SPI2, Dat.Array[DIdx]);
+        DIdx++;
       }
-      else
-      {
-        Dat.Cmd.Bytes[CIdx] = ByteIn;
-        CIdx++;
-        if(CIdx >= MAX_COMMAND_SIZE)
-          CIdx = 0;
-        
-          RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI2, ENABLE);
-          RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, DISABLE);      
-          //DelayResolution1us(1);     
-          TimE.Delay_us(1);
-          RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI2, DISABLE);
-          RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
-               
-      }
-      break;
     }
   }
 }
@@ -505,8 +473,7 @@ int main()
     if(VC.DRC_On)
       VC.GetDRC();  
     TimE.GetFPS();
-     // update data to Txmit
-    Dat.UpdateTxData();
+
     //******************** SEND DATA *********************//
     // set data ready flag (pin) if datasets are requested
      if(Dat.TxActive)
@@ -515,7 +482,7 @@ int main()
     
     // wait for data Tx to finish
      Count = 0;
-     while((SPI_Done == false) && Dat.TxActive)// && (Count < SPI_TIME_OUT))
+     while((SPI_Done == false))// && (Count < SPI_TIME_OUT))
      {
        Count++;
         TimE.Delay_us(50);

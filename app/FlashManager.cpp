@@ -122,9 +122,12 @@ void FlashManager::ReadFromFlash(unsigned char *Data, int DataSize, unsigned int
 
 
 /*************************************************************************
-  * @brief  Gets the sector of a given address
-  * @param  Address
-  * @retval The sector of a given address
+ * Function Name: GetSector
+ * Parameters: none
+ *
+ * Return: none
+ *
+ * Description: Find sector where flash address is located
 **************************************************************************/
 uint32_t FlashManager::GetSector(uint32_t Address)
 {
