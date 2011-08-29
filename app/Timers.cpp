@@ -114,3 +114,23 @@ void Timers::Delay_us(unsigned int nTime)
       TempVal = i;
  
 }
+
+/*************************************************************************
+ * Function Name: Delay_s
+ * Parameters: none
+ *
+ * Return: none
+ *
+ * Description: uses Timer3 to count a delay time
+ *
+ *************************************************************************/
+void Timers::Delay_s(unsigned int nTime)
+{ 
+  int TempVal;
+  
+  
+  for( int n = 0; n < nTime; n++)
+    for(int i = 0; i < 20000000; i++)
+      TempVal = i;
+ 
+}

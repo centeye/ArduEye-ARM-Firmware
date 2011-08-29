@@ -247,6 +247,8 @@ void SPIHandler(void)
       CIdx++;
       if(ByteIn == END_PCKT)
         ParseCommand();
+      if(CIdx == MAX_COMMAND_SIZE)
+        CIdx = 0;
     }
     else if (Dat.Mode == READ_MODE)
     {
@@ -408,6 +410,8 @@ int main()
   // Enable ADC1
   ADC_Cmd(ADC1, ENABLE);
   
+  TimE.Delay_s(5);
+  
   SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
   SPI_InitStructure.SPI_Mode = SPI_Mode_Slave;
   SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
@@ -480,7 +484,7 @@ int main()
     {
        RDY_PORT->ODR |= RDY_MASK;
     
-    // wait for data Tx to finish
+    // wait for data  Tx to finish
      Count = 0;
      while((SPI_Done == false))// && (Count < SPI_TIME_OUT))
      {

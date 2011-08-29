@@ -26,6 +26,7 @@ public:
   void Init(void);
   void GetFPS(void);
   void Delay_us(unsigned int nTime);
+  void Delay_s(unsigned int nTime);
   
 //private:
   unsigned int LastTime;
