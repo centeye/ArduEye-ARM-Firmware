@@ -56,10 +56,10 @@ const char ESC_CHAR =  38; //0xFF
 
 // data set ids
 #define DATA_ID_RAW   48
-#define DATA_ID_OFX   49
-#define DATA_ID_OFY   50
-#define DATA_ID_FPS   51
-#define DATA_CMD_VAL  52
+#define DATA_ID_OFX   50
+#define DATA_ID_OFY   52
+#define DATA_ID_FPS   54
+#define DATA_CMD_VAL  56
 
 #define WRITE_MODE 10
 #define READ_MODE 11
