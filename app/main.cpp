@@ -31,6 +31,17 @@
 #define CMD_MASK      GPIO_Pin_10
 #define CMD_PORT      GPIOB
 
+#define LED_MASK      GPIO_Pin_2
+#define LED_PORT      GPIOB
+
+#define RDY2_MASK     GPIO_Pin_4
+#define RDY2_PORT     GPIOC
+
+#define SDA_MASK      GPIO_Pin_11
+#define SDA_PORT      GPIOB
+
+#define SCL_MASK      GPIO_Pin_10
+#define SCL_PORT      GPIOB
 
 #define SPI_TIME_OUT    20000
 
@@ -104,34 +115,6 @@ void ADCHandler(void)
   
   
 }
-/*************************************************************************
- * Function Name: ParseEsc
- * Parameters: void
- * Return: void
- *
- * Description:
- *		
- *************************************************************************/
-void ParseESC(void)
-{  
-  switch(Dat.Cmd.ESCBytes[1])
-  {
-  case ESC_CHAR:
-    Dat.Cmd.Bytes[CIdx] = Dat.Cmd.ESCBytes[1];
-    CIdx++;
-    break;
-  case WRITE_CHAR:
-    Dat.Mode = WRITE_MODE;
-    break;
-  case READ_CHAR:
-    Dat.Mode = READ_MODE;
-    break;
-  case START_PCKT:
-  default:
-    break;
-  }
-  EIdx = 0;
-}
 
 /*************************************************************************
  * Function Name: ParseCommand
@@ -178,6 +161,12 @@ void ParseCommand(void)
     case SETTLING_TIME_CMD:
       VC.SettlingTime = Dat.Cmd.Bytes[2];
       break;
+    case LWTA_THRESH_CMD:
+      ImgP.SetLWTAThresh(Dat.Cmd.Bytes[2]);
+      break;
+    case LWTA_WIN_CMD:
+      ImgP.SetWinSize(Dat.Cmd.Bytes[2]);
+      break;
     default:
       VC.SetPendingCommand(Dat.Cmd.Bytes[1] - 80, Dat.Cmd.Bytes[2]);
       CMDUpdateRequest = true;
@@ -198,13 +187,9 @@ void ParseCommand(void)
     break;
   case SOH_CHAR:
     Dat.InitHeader(Dat.Cmd.Bytes[1]);
-    SPI_I2S_SendData(SPI2, Dat.Array[0]);
-    DIdx = 1;
     break;
   case SOD_CHAR:
-    Dat.SetActiveArray(Dat.Cmd.Bytes[1]);
-    SPI_I2S_SendData(SPI2, Dat.Array[0]);
-    DIdx = 1;
+    Dat.SetActiveArray(Dat.Cmd.Bytes[1]);  
     break;
   case EOD_CHAR:
     SPI_Done = true;
@@ -213,6 +198,44 @@ void ParseCommand(void)
     break;
   }
   CIdx = 0;
+}
+
+/*************************************************************************
+ * Function Name: ParseEsc
+ * Parameters: void
+ * Return: void
+ *
+ * Description:
+ *		
+ *************************************************************************/
+void ParseESC(void)
+{  
+  switch(Dat.Cmd.ESCBytes[1])
+  {
+   // if escape char is duplicated, ignore it
+  case ESC_CHAR:
+    Dat.Cmd.Bytes[CIdx] = Dat.Cmd.ESCBytes[1];
+    CIdx++;
+    break;
+   // set write mode
+  case WRITE_CHAR:
+    Dat.Mode = WRITE_MODE;
+    break;
+  // set read mode
+  case READ_CHAR:
+    Dat.Mode = READ_MODE;
+    SPI_I2S_SendData(SPI2, Dat.Array[0]);
+    DIdx = 1;
+    break;
+  //start packet flag is received, no action is needed
+  case END_PCKT:
+    ParseCommand();
+    break;
+  case START_PCKT:
+  default:
+    break;
+  }
+  EIdx = 0;
 }
 
 /*************************************************************************
@@ -245,8 +268,6 @@ void SPIHandler(void)
     {
       Dat.Cmd.Bytes[CIdx] = ByteIn;
       CIdx++;
-      if(ByteIn == END_PCKT)
-        ParseCommand();
       if(CIdx == MAX_COMMAND_SIZE)
         CIdx = 0;
     }
@@ -281,6 +302,18 @@ void InitGPIOs(void)
   
   GPIO_InitStructure.GPIO_Pin =  CMD_MASK;
   GPIO_Init(CMD_PORT, &GPIO_InitStructure);
+  
+  GPIO_InitStructure.GPIO_Pin =  LED_MASK;
+  GPIO_Init(LED_PORT, &GPIO_InitStructure);
+  
+  GPIO_InitStructure.GPIO_Pin =  RDY2_MASK;
+  GPIO_Init(RDY2_PORT, &GPIO_InitStructure);
+  
+   GPIO_InitStructure.GPIO_Pin =  SDA_MASK;
+  GPIO_Init(SDA_PORT, &GPIO_InitStructure);
+  
+   GPIO_InitStructure.GPIO_Pin =  SCL_MASK;
+  GPIO_Init(SCL_PORT, &GPIO_InitStructure);
   
   
   GPIO_InitStructure.GPIO_Pin =  AN_MASK;
@@ -357,8 +390,6 @@ int main()
   /* Setup STM32 system (clock, PLL and Flash configuration) */
   SystemInit();
   
-  /* Set the Vector Table base location at 0x20000000 */
- // NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x20000000);
   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4); 
   
   // enable peripheral clock for ADC
@@ -377,9 +408,11 @@ int main()
   
   EXT_CRT_SECTION();
 
+  // initialize gpios and interrupts
   InitGPIOs();
   VC.InitGPIOs_Timers(TimE);
   InitIRQs();
+  // set flash read latency
   FLASH_SetLatency(FLASH_Latency_3);
   
   // ADC configuration
@@ -410,8 +443,10 @@ int main()
   // Enable ADC1
   ADC_Cmd(ADC1, ENABLE);
   
+  // delay to allow time for arduino to startup
   TimE.Delay_s(5);
   
+  // initialize spi
   SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
   SPI_InitStructure.SPI_Mode = SPI_Mode_Slave;
   SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
@@ -431,14 +466,19 @@ int main()
   
   uint16_t PrescalerValue = (uint16_t) ((SystemCoreClock / 2) / 10000);
   
+  // initialize timer
   TimE.Init();
+  // initialize vision chip interface
   VC.Init();
+  // initialize image processing 
   ImgP.InitHighPass(VC.ResRows, VC.ResCols, VC.MaxSize); 
   ImgP.InitOpticFlow(VC.ResRows, VC.ResCols);
+  // initialize datasets to transmit
   Dat.InitDS(DATA_ID_RAW, VC.ResRows, VC.ResCols, VC.RawImgBuf);
   Dat.InitDS(DATA_ID_OFX, ImgP.NumBins[0], ImgP.NumBins[1], (unsigned char *)ImgP.OpticFlowScaleX);
   Dat.InitDS(DATA_ID_OFY, ImgP.NumBins[0], ImgP.NumBins[1], (unsigned char *)ImgP.OpticFlowScaleY);
   Dat.InitDS(DATA_ID_FPS, 1, 2, TimE.FPS);
+  Dat.InitDS(DATA_ID_MAXES, 1, 2, ImgP.MaxPoints);
   
   while(1)
   {
@@ -446,13 +486,15 @@ int main()
     //****************** GET RAW IMAGE ******************//
     // clear data ready flag (pin)
     RDY_PORT->ODR &= ~RDY_MASK;
-    // read new frame
-   // VC.ReadTemp();
+    LED_PORT->ODR &= ~LED_MASK;
+
+    // if calibration requested, record new fpn mask
     if(RecordFPN)
     {
       VC.RecordFPNMask();
       RecordFPN = false;
     }
+    // if change resolution command received, update vision chip class, data to transmit and image processing
     if(ResolutionUpdateRequest)
     {
       VC.SetResolution(VC.NewRows, VC.NewCols);
@@ -460,37 +502,49 @@ int main()
       ImgP.SetImageResolution(VC.ResRows, VC.ResCols);
       ResolutionUpdateRequest = false;
     }
+    // send pending commands (commands sent asyncronously could interfere with image readout)
     if(CMDUpdateRequest)
     {
       VC.SendPendingCommand();
       CMDUpdateRequest = false;
     }
+    // get new frame
     VC.ReadRawImage();
-    ImgP.HighPass(VC.RawImgBuf);
     
-    // ****************COMPUTE IMAGE PROCESSING ********** //
-    ImgP.ComputeOpticFlow(VC.Img1, VC.Img2);   
+    // ****************APPLY IMAGE PROCESSING ********** //
+    ImgP.LocalWinners(VC.RawImgBuf);
+    Dat.UpdateResolution(DATA_ID_MAXES, ImgP.NumLWTAPoints, 2);
+    ImgP.HighPass(VC.RawImgBuf);
+    ImgP.ComputeOpticFlow(VC.Img1, VC.Img2);  
+    // prep optic flow for output
     ImgP.ScaleOpticFlow();
    
+    // raw image is double buffered
     VC.SwapBuffers();
     Dat.UpdateDataPointer(DATA_ID_RAW, VC.RawImgBuf);
+    
+    // apply DRC if turned on 
     if(VC.DRC_On)
       VC.GetDRC();  
+    // compute frames per second
     TimE.GetFPS();
 
     //******************** SEND DATA *********************//
     // set data ready flag (pin) if datasets are requested
      if(Dat.TxActive)
     {
+      // flag data read done (read by master)
        RDY_PORT->ODR |= RDY_MASK;
+       LED_PORT->ODR |= LED_MASK;
     
-    // wait for data  Tx to finish
+    // wait for data Tx to finish
      Count = 0;
      while((SPI_Done == false))// && (Count < SPI_TIME_OUT))
      {
        Count++;
         TimE.Delay_us(50);
      }
+     // clear flags
      RDY_PORT->ODR &= ~RDY_MASK;
      SPI_Done = false;
      CMD_PORT->ODR &= ~CMD_MASK;

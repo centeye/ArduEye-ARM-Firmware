@@ -26,7 +26,7 @@ const char ESC_CHAR =  38; //0xFF
 
 // set parameters
 #define HEADER_SIZE   5
-#define MAX_DATASETS  4
+#define MAX_DATASETS  6
 #define MAX_PCKT_SIZE 512
 #define MAX_COMMAND_SIZE 8
 #define MAX_ESC_SIZE 2
@@ -46,6 +46,8 @@ const char ESC_CHAR =  38; //0xFF
 #define AMP_GAIN_CMD 76
 #define HIGH_PASS_CMD 77
 #define SETTLING_TIME_CMD 78
+#define LWTA_THRESH_CMD 79
+#define LWTA_WIN_CMD 80
 
 #define START_PCKT 90
 #define END_PCKT 91
@@ -60,6 +62,7 @@ const char ESC_CHAR =  38; //0xFF
 #define DATA_ID_OFY   52
 #define DATA_ID_FPS   54
 #define DATA_CMD_VAL  56
+#define DATA_ID_MAXES 58
 
 #define WRITE_MODE 10
 #define READ_MODE 11

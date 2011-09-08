@@ -49,10 +49,10 @@
 #define RAW_COLS_MIN      14
 
 #define AMP_GAIN_DEFAULT  5
-#define VREF_DEFAULT      28
+#define VREF_DEFAULT      30
 
-#define NBIAS_DEFAULT     52
-#define AOBIAS_DEFAULT    35
+#define NBIAS_DEFAULT     55
+#define AOBIAS_DEFAULT    50
 
 #define CMD_DELAY         0
 

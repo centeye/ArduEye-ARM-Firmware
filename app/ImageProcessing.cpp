@@ -10,6 +10,12 @@
 
 #include "ImageProcessing.h"
 
+ImageProcessing::ImageProcessing()
+{
+  LWTAWinSize = LWTA_WINSIZE_DEFAULT;
+  LWTAThresh = LWTA_THRESH_DEFAULT;
+  
+}
 ImageProcessing::~ImageProcessing()
 {
   if(LowPass)
@@ -201,4 +207,74 @@ void ImageProcessing::InitHighPass(int ImgRows, int ImgCols, int size)
 void ImageProcessing::SetHighPass(int cmd)
 {
   HPShift = cmd;
+}
+void ImageProcessing::SetWinSize(int cmd)
+{
+  LWTAWinSize = cmd;
+  
+    if(LWTAWinSize > MAX_LWTA_WINSIZE)
+      LWTAWinSize = MAX_LWTA_WINSIZE;
+   
+    if(LWTAWinSize < MIN_LWTA_WINSIZE)
+      LWTAWinSize = MIN_LWTA_WINSIZE;
+  
+}
+void ImageProcessing::SetLWTAThresh(int cmd)
+{
+  LWTAThresh = cmd;
+}
+void ImageProcessing::LocalWinners(unsigned char * Buf)
+{
+  bool Fail;
+  int EdgeBuf = LWTAWinSize/2 + 1;
+  int Radius = LWTAWinSize / 2;
+  unsigned char Pix;
+  int r, c, m, n, RowIdx;
+  
+  NumLWTAPoints = 1;
+  
+  MaxPoints[0] = ResRows;
+  MaxPoints[1] = ResCols;
+  
+  for (r = EdgeBuf; r < ResRows - EdgeBuf; r++)
+  {
+      RowIdx = r*ResCols;
+      for(c = EdgeBuf; c < ResCols - EdgeBuf; c++)
+      {
+            
+         Pix = Buf[RowIdx + c];		
+	 Fail = true;
+	
+         if(Pix > LWTAThresh)
+           if(Buf[RowIdx + c - 1] < Pix)
+              if(Buf[RowIdx + c + 1] < Pix)
+                  if(Buf[(r - 1) * ResRows + c] < Pix)
+                       if(Buf[(r + 1) * ResRows + c] < Pix)
+                       {     
+                          Fail = 0;
+                          for (m = r - Radius; m <= r + Radius; m++)
+                          {
+                                  RowIdx = m * ResRows;
+                                  for ( n = c - Radius; n <= c + Radius; n++)
+                                  {
+                                          if(Buf[RowIdx + n] > Pix)
+                                          {
+                                                  Fail = 1;
+                                                  break;
+                                          }
+                                  }
+  
+                                  if(Fail)
+                                          break;
+                          }
+                       }
+         
+         if(!Fail)
+         {
+           MaxPoints[NumLWTAPoints*2] = r;
+           MaxPoints[NumLWTAPoints*2 + 1] = c;
+           NumLWTAPoints++;          
+         }   
+      }
+  }
 }
