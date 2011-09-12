@@ -28,7 +28,7 @@
 #define MIN_LWTA_WINSIZE       5
 #define LWTA_WINSIZE_DEFAULT   9
 
-#define LWTA_THRESH_DEFAULT    150
+#define LWTA_THRESH_DEFAULT    120
 
 class ImageProcessing{
   

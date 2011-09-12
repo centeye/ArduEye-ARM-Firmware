@@ -444,7 +444,7 @@ int main()
   ADC_Cmd(ADC1, ENABLE);
   
   // delay to allow time for arduino to startup
-  TimE.Delay_s(5);
+  TimE.Delay_s(1);
   
   // initialize spi
   SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
@@ -480,6 +480,9 @@ int main()
   Dat.InitDS(DATA_ID_FPS, 1, 2, TimE.FPS);
   Dat.InitDS(DATA_ID_MAXES, 1, 2, ImgP.MaxPoints);
   
+  RDY_PORT->ODR |= RDY_MASK;
+  TimE.Delay_us(50);
+  
   while(1)
   {
   
@@ -512,8 +515,6 @@ int main()
     VC.ReadRawImage();
     
     // ****************APPLY IMAGE PROCESSING ********** //
-    ImgP.LocalWinners(VC.RawImgBuf);
-    Dat.UpdateResolution(DATA_ID_MAXES, ImgP.NumLWTAPoints, 2);
     ImgP.HighPass(VC.RawImgBuf);
     ImgP.ComputeOpticFlow(VC.Img1, VC.Img2);  
     // prep optic flow for output
@@ -522,6 +523,8 @@ int main()
     // raw image is double buffered
     VC.SwapBuffers();
     Dat.UpdateDataPointer(DATA_ID_RAW, VC.RawImgBuf);
+    ImgP.LocalWinners(VC.RawImgBuf);
+    Dat.UpdateResolution(DATA_ID_MAXES, ImgP.NumLWTAPoints, 2);
     
     // apply DRC if turned on 
     if(VC.DRC_On)

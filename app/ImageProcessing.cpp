@@ -229,25 +229,27 @@ void ImageProcessing::LocalWinners(unsigned char * Buf)
   int EdgeBuf = LWTAWinSize/2 + 1;
   int Radius = LWTAWinSize / 2;
   unsigned char Pix;
-  int r, c, m, n, RowIdx;
+  int r, c, m, n, RowIdx, rIdx;
   
   NumLWTAPoints = 1;
   
   MaxPoints[0] = ResRows;
   MaxPoints[1] = ResCols;
   
+  //Buf[10*ResCols + 20] = 245; 
+  
   for (r = EdgeBuf; r < ResRows - EdgeBuf; r++)
   {
-      RowIdx = r*ResCols;
+    rIdx = r * ResRows;
       for(c = EdgeBuf; c < ResCols - EdgeBuf; c++)
       {
             
-         Pix = Buf[RowIdx + c];		
+         Pix = Buf[rIdx + c];		
 	 Fail = true;
 	
          if(Pix > LWTAThresh)
-           if(Buf[RowIdx + c - 1] < Pix)
-              if(Buf[RowIdx + c + 1] < Pix)
+           if(Buf[rIdx  + c - 1] < Pix)
+              if(Buf[rIdx + c + 1] < Pix)
                   if(Buf[(r - 1) * ResRows + c] < Pix)
                        if(Buf[(r + 1) * ResRows + c] < Pix)
                        {     
@@ -257,7 +259,7 @@ void ImageProcessing::LocalWinners(unsigned char * Buf)
                                   RowIdx = m * ResRows;
                                   for ( n = c - Radius; n <= c + Radius; n++)
                                   {
-                                          if(Buf[RowIdx + n] > Pix)
+                                          if((Buf[RowIdx + n] > Pix) && !((r==m)&&(n==c)))
                                           {
                                                   Fail = 1;
                                                   break;

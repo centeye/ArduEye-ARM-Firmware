@@ -122,7 +122,7 @@ void Stonyman::ReadRawImage()
           while(!PixFilled);
           PixFilled = false;
           if(FPN_On)
-            RawImgBuf[PixIdx] -= FPN;
+            RawImgBuf[PixIdx] += FPN;
 
           if(RawImgBuf[PixIdx] == ESC_CHAR)
             RawImgBuf[PixIdx] --;
@@ -237,7 +237,7 @@ void Stonyman::RecordFPNMask(unsigned int FlashAddr)
 
 void Stonyman::FPNIteration(unsigned int FlashAddress)
 {
-  unsigned char MinVal, MaxVal;
+    int MinVal, MaxVal;
     int i, k;
     int RawImgSize = ResRows * ResCols;
 
@@ -269,7 +269,7 @@ void Stonyman::FPNIteration(unsigned int FlashAddress)
     // subtract the min pixel value from the mask
     for (i = 0; i < RawImgSize; i++)
     {       
-       RawImgBuf[i] = (unsigned char)FPNMaskBUILD[i] - MinVal;
+       RawImgBuf[i] = (unsigned char)(-(FPNMaskBUILD[i] - MaxVal));
     }
 
     FlashM.WriteToFlash(RawImgBuf, RawImgSize, FlashAddress);

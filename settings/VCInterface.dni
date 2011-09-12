@@ -28,7 +28,7 @@ ActionState=1
 Enabled=0
 ShowSource=1
 [DebugChecksum]
-Checksum=1086612292
+Checksum=557443270
 [DisAssemblyWindow]
 NumStates=_ 1
 State 1=_ 1
@@ -59,12 +59,12 @@ Count=3
 LoggingEnabled=_ 0
 LogFile=_ ""
 Category=_ 0
-[TermIOLog]
-LoggingEnabled=_ 0
-LogFile=_ ""
 [Aliases]
 A0=_ "F:\Dropbox\VCInterfaceEval\app\main.cpp" "C:\Users\Alison Leonard\Dropbox\VCInterfaceEval\app\main.cpp"
 A1=_ "F:\Dropbox\VCInterfaceEval\library\CMSIS\CM3\DeviceSupport\ST\STM32F2xx\startup\iar\startup_stm32f2xx.s" "F:\IAR\ArduEye-ARM-Firmware\library\CMSIS\CM3\DeviceSupport\ST\STM32F2xx\startup\arm\startup_stm32f2xx.s"
 A2=_ "F:\IAR\VCInterfaceEval\app\main.cpp" "C:\Users\Alison Leonard\Dropbox\VCInterfaceEval\app\main.cpp"
 Count=3
 SuppressDialog=0
+[TermIOLog]
+LoggingEnabled=_ 0
+LogFile=_ ""
