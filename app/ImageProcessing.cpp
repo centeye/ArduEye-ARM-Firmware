@@ -101,24 +101,28 @@ void ImageProcessing::ComputeOpticFlow(unsigned char * Array1, unsigned char * A
 }
 void ImageProcessing::ScaleOpticFlow()
 {
+  int idx = 0;
   for(int i = 0; i < OpticFlowSize; i++)
   {
    // OpticFlowScaleX[i] = OpticFlowX[i] >> OF_DOWN_SCALE;
    // OpticFlowScaleY[i] = OpticFlowY[i] >> OF_DOWN_SCALE;
     if(OpticFlowX[i] > 1024)
-      OpticFlowScaleX[i] = 127;
-    else if(OpticFlowX[i] < -1024)
-      OpticFlowScaleX[i] = -127;
+      OpticFlowScale[idx] = 127;
+    else if(OpticFlowX[idx] < -1024)
+      OpticFlowScale[idx] = -127;
     else
-      OpticFlowScaleX[i] = OpticFlowX[i] >> OF_DOWN_SCALE;
-    
+      OpticFlowScale[idx] = OpticFlowX[i] >> OF_DOWN_SCALE;
+    idx++;
+  }
+  for(int i = 0; i < OpticFlowSize; i++)
+  {
      if(OpticFlowY[i] > 1024)
-      OpticFlowScaleY[i] = 127;
+      OpticFlowScale[idx] = 127;
     else if(OpticFlowY[i] < -1024)
-      OpticFlowScaleY[i] = -127;
+      OpticFlowScale[idx] = -127;
     else
-      OpticFlowScaleY[i] = OpticFlowY[i] >> OF_DOWN_SCALE;
-      
+      OpticFlowScale[idx] = OpticFlowY[i] >> OF_DOWN_SCALE;  
+    idx++;
   }
 }
 

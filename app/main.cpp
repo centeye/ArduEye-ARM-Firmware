@@ -140,8 +140,7 @@ void ParseCommand(void)
       break;
     case OF_RESOLUTION_CMD:
       ImgP.SetBinResolution(Dat.Cmd.Bytes[2], Dat.Cmd.Bytes[3]);
-      Dat.UpdateResolution(DATA_ID_OFX, ImgP.NumBins[0], ImgP.NumBins[1]);
-      Dat.UpdateResolution(DATA_ID_OFY, ImgP.NumBins[0], ImgP.NumBins[1]);
+      Dat.UpdateResolution(DATA_ID_OF, ImgP.NumBins[0], ImgP.NumBins[1]*2);
       break;
     case OF_SMOOTHING_CMD:
       ImgP.SetAlpha(Dat.Cmd.Bytes[2]);
@@ -377,7 +376,7 @@ void InitIRQs(void)
   
 }
 
-int main()
+ int main()
 {
   ADC_InitTypeDef ADC_InitStructure;
   ADC_CommonInitTypeDef ADC_CommonInitStructure;
@@ -475,8 +474,7 @@ int main()
   ImgP.InitOpticFlow(VC.ResRows, VC.ResCols);
   // initialize datasets to transmit
   Dat.InitDS(DATA_ID_RAW, VC.ResRows, VC.ResCols, VC.RawImgBuf);
-  Dat.InitDS(DATA_ID_OFX, ImgP.NumBins[0], ImgP.NumBins[1], (unsigned char *)ImgP.OpticFlowScaleX);
-  Dat.InitDS(DATA_ID_OFY, ImgP.NumBins[0], ImgP.NumBins[1], (unsigned char *)ImgP.OpticFlowScaleY);
+  Dat.InitDS(DATA_ID_OF, ImgP.NumBins[0], ImgP.NumBins[1]*2, (unsigned char *)ImgP.OpticFlowScale);
   Dat.InitDS(DATA_ID_FPS, 1, 2, TimE.FPS);
   Dat.InitDS(DATA_ID_MAXES, 1, 2, ImgP.MaxPoints);
   

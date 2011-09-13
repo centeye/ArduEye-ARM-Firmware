@@ -10,12 +10,15 @@
 
 #include "arm_comm.h"
 
-// start packet flags
-const char ESC_CHAR =  38; //0xFF
-#define EOD_CHAR      0xFC
-#define SOD_CHAR      0xFE
-#define SOH_CHAR      0xFD
-#define NULL_CHAR     0
+// packet flow control flags
+const char ESC_CHAR =  38; 
+#define EOD_CHAR      92
+#define SOD_CHAR      95
+#define SOH_CHAR      96
+#define START_PCKT 90
+#define END_PCKT 91
+#define WRITE_CHAR 93
+#define READ_CHAR 94
 
 // packet / process types
 #define CMD_RECEIVE   1
@@ -24,7 +27,7 @@ const char ESC_CHAR =  38; //0xFF
 #define NULL_PROCESS  -1
 #define NULL_TX       -1
 
-// set parameters
+// array sizes
 #define HEADER_SIZE   5
 #define MAX_DATASETS  6
 #define MAX_PCKT_SIZE 512
@@ -48,31 +51,26 @@ const char ESC_CHAR =  38; //0xFF
 #define SETTLING_TIME_CMD 78
 #define LWTA_THRESH_CMD 79
 #define LWTA_WIN_CMD 80
-
-#define START_PCKT 90
-#define END_PCKT 91
-#define WRITE_CHAR 93
-#define READ_CHAR 94
-
 #define VREF_CMD  81
 
 // data set ids
 #define DATA_ID_RAW   48
-#define DATA_ID_OFX   50
-#define DATA_ID_OFY   52
+#define DATA_ID_OF   50
 #define DATA_ID_FPS   54
 #define DATA_CMD_VAL  56
 #define DATA_ID_MAXES 58
 
+// mode definitions
 #define WRITE_MODE 10
 #define READ_MODE 11
 
-
+// DataSet Structure - This structure keeps track of the current size and
+// array pointer for each dataset
 typedef struct DataSets{
  
   bool Active;
   char DSID;
-  unsigned short Size, DSIdx, Rows, Cols;
+  unsigned short Size, Rows, Cols;
   unsigned char * ArrayPointer;
   
 }DataSets;
@@ -84,7 +82,8 @@ typedef struct CmdWrap{
   unsigned char ESCBytes[MAX_ESC_SIZE];
 }CmdWrap;
   
-
+// DataManager class prepares data to be sent via spi and keeps track of
+// dataset settings
 class DataManager{
   
 public:

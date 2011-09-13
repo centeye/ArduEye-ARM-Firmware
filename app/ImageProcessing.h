@@ -38,7 +38,7 @@ public:
   ~ImageProcessing();
     
   int OpticFlowX[OF_MAX_DATA_SIZE], OpticFlowY[OF_MAX_DATA_SIZE];
-  char OpticFlowScaleX[OF_MAX_DATA_SIZE], OpticFlowScaleY[OF_MAX_DATA_SIZE];
+  char OpticFlowScale[OF_MAX_DATA_SIZE*2];
   int NumBins[2];
   unsigned char MaxPoints[RAW_IMG_DEF_SIZE / (MIN_LWTA_WINSIZE * MIN_LWTA_WINSIZE)];
   int NumLWTAPoints;
