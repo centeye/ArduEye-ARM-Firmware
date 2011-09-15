@@ -28,7 +28,7 @@ const char ESC_CHAR =  38;
 #define NULL_TX       -1
 
 // array sizes
-#define HEADER_SIZE   5
+#define HEADER_SIZE   6
 #define MAX_DATASETS  6
 #define MAX_PCKT_SIZE 512
 #define MAX_COMMAND_SIZE 8

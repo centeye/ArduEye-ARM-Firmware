@@ -142,7 +142,12 @@ void DataManager::InitHeader(int inDSID)
     Header[3] = DS[ActiveTx].Cols >> 8;
     Header[4] = DS[ActiveTx].Cols & 0xFF;
     
+    //Compute Checksum Byte
+    Header[5] = 0;
+    for(int i = 0; i < 5; i++)
+      Header[5] += Header[i];
+    
     Array = Header;
-    TxDataSize = 5;
+    TxDataSize = 6;
   }
 }
