@@ -28,7 +28,7 @@ ActionState=1
 Enabled=0
 ShowSource=1
 [DebugChecksum]
-Checksum=1877996964
+Checksum=-2094362002
 [DisAssemblyWindow]
 NumStates=_ 1
 State 1=_ 1
@@ -51,10 +51,9 @@ Placement=_ 2182 461 2619 739
 [Disassemble mode]
 mode=0
 [Breakpoints]
-Bp0=_ "STD_CODE" "{$PROJ_DIR$\app\main.cpp}.106.5@1" 1 0 0 0 "" 0 ""
-Bp1=_ "STD_CODE" "{$PROJ_DIR$\library\STM32F2xx_StdPeriph_Template\stm32f2xx_it.c}.76.3@1" 1 0 0 0 "" 0 ""
-Bp2=_ "STD_CODE" "{$PROJ_DIR$\library\STM32F2xx_StdPeriph_Template\stm32f2xx_it.c}.63.3@1" 1 0 0 0 "" 0 ""
-Count=3
+Bp0=_ "STD_CODE" "{$PROJ_DIR$\library\STM32F2xx_StdPeriph_Template\stm32f2xx_it.c}.75.3@1" 1 0 0 0 "" 0 ""
+Bp1=_ "STD_CODE" "{$PROJ_DIR$\library\STM32F2xx_StdPeriph_Template\stm32f2xx_it.c}.62.3@1" 1 0 0 0 "" 0 ""
+Count=2
 [Log file]
 LoggingEnabled=_ 0
 LogFile=_ ""

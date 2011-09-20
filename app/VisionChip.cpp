@@ -1,18 +1,41 @@
-/*************************************************************************
- *
- *    Used with ICCARM and AARM.
- *
- *    VisionChip.cpp
- *    Centeye,Inc
- *    Alison Leonard
- *    July 6, 2011
- **************************************************************************/
+/*
+ 
+ ImageProcessing.cpp : general class holding image processing functions
+ Centeye, Inc
+ Created by Alison Leonard. August, 2011
+
+ ===============================================================================
+ Copyright (c) 2011, Centeye, Inc.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright
+ notice, this list of conditions and the following disclaimer.
+ * Redistributions in binary form must reproduce the above copyright
+ notice, this list of conditions and the following disclaimer in the
+ documentation and/or other materials provided with the distribution.
+ * Neither the name of Centeye, Inc. nor the
+ names of its contributors may be used to endorse or promote products
+ derived from this software without specific prior written permission.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL CENTEYE, INC. BE LIABLE FOR ANY
+ DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ ===============================================================================
+*/
 
 #include "VisionChip.h"
 
 /*************************************************************************
  * Function Name: Default Constructor
-
  *************************************************************************/
 VisionChip::VisionChip()
 {
@@ -30,7 +53,6 @@ VisionChip::VisionChip()
 
 /*************************************************************************
  * Function Name: Deconstructor
-
  *************************************************************************/
 VisionChip::~VisionChip()
 {
@@ -41,10 +63,6 @@ VisionChip::~VisionChip()
 
 /*************************************************************************
  * Function Name: SwapBuffers
- * Parameters: none
- *
- * Return: none
- *
  * Description: switch pointer between two raw image buffers
  *************************************************************************/
 void VisionChip::SwapBuffers()
@@ -64,10 +82,6 @@ void VisionChip::SwapBuffers()
 }
 /*************************************************************************
  * Function Name: ReadRawImage
- * Parameters: none
- *
- * Return: none
- *
  * Description: place holder for inheriting classes
  *************************************************************************/
 void VisionChip::ReadRawImage()
@@ -75,10 +89,6 @@ void VisionChip::ReadRawImage()
 }
 /*************************************************************************
  * Function Name: Init
- * Parameters: none
- *
- * Return: none
- *
  * Description: place holder for inheriting classes
  *************************************************************************/
 void VisionChip::Init()
@@ -86,10 +96,6 @@ void VisionChip::Init()
 }
 /*************************************************************************
  * Function Name: SetResolution
- * Parameters: none
- *
- * Return: none
- *
  * Description: place holder for inheriting classes
  *************************************************************************/
 bool VisionChip::SetResolution(int Rows, int Cols)
@@ -99,10 +105,6 @@ bool VisionChip::SetResolution(int Rows, int Cols)
 
 /*************************************************************************
  * Function Name: SetResolution
- * Parameters: none
- *
- * Return: none
- *
  * Description: place holder for inheriting classes
  *************************************************************************/
 void VisionChip::SetNewResolution(int Rows, int Cols)
@@ -112,136 +114,75 @@ void VisionChip::SetNewResolution(int Rows, int Cols)
 }
 
 /*************************************************************************
- * Function Name: InitGPIOS
- * Parameters: none
- *
- * Return: none
- *
- * Description: initialize GPIOs to input or output
+ * Function Name: InitGPIOS_Timers
+ * Description: place holder for inheriting classes
  *************************************************************************/
 void VisionChip::InitGPIOs_Timers(Timers DelayTimer)
 {
-  GPIO_InitTypeDef GPIO_InitStructure;
-  
-  GPIO_InitStructure.GPIO_Pin =  CMDIO_MASK;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-  GPIO_Init(CMDIO_PORT, &GPIO_InitStructure);
-  
-  GPIO_InitStructure.GPIO_Pin =  WNR_MASK;
-  GPIO_Init(WNR_PORT, &GPIO_InitStructure);
-  
-  GPIO_InitStructure.GPIO_Pin =  CS_MASK;
-  GPIO_Init(CS_PORT, &GPIO_InitStructure);
-  
-  TimE = DelayTimer;
-  
-  GPIO_InitStructure.GPIO_Pin =  TEMP_MASK;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP ;
-  GPIO_Init(TEMP_PORT, &GPIO_InitStructure);
 }
 
-
-/*************************************************************************
- * Function Name: ClearPins
- * Parameters: none
- *
- * Return: none
- *
- * Description: clear command pins for writing
- *
- *************************************************************************/
-void VisionChip::ClearPins(void)
-{
-  CMDIO_PORT->ODR &= ~CMDIO_MASK;                   
-}
-
-/*************************************************************************
- * Function Name: send
- * Parameters: Command, Value
- *
- * Return: none
- *
- * Description: send command to Vision Chip
- *
- *************************************************************************/
-void VisionChip::send(unsigned int cmd, unsigned int val)
-{ 
-  // add upper two bits of val to lower bits of cmd
-  cmd += (val >> 6) & 0x03;
-  val &= 0x3F;
-  
-  WNR_PORT->ODR |= WNR_MASK;
-
-  ClearPins();
-  // send command 1
-  cmd += 0x80;
-  CMDIO_PORT->ODR |= (CMDIO_MASK & cmd);
-           
-  
-  CS_PORT->ODR |= CS_MASK;
-  //DelayResolution1us(1);
-  TimE.Delay_us(1);
-  //cmd += 10;
-  CS_PORT->ODR &= ~CS_MASK;
-  
-  // send command 2
-  ClearPins();
-  CMDIO_PORT->ODR |= (CMDIO_MASK & val);
- 
-  CS_PORT->ODR |= CS_MASK;
-  //DelayResolution1us(1);
-  TimE.Delay_us(1);
-  //cmd -= 10;
-  CS_PORT->ODR &= ~CS_MASK;
-  
-}
 /*************************************************************************
  * Function Name: RecordFPNMask
- * Parameters: none
- *
- * Return: none
- *
- * Description: clear command pins for writing
- *
+ *  Description: place holder for inheriting classes
  *************************************************************************/
 void VisionChip::RecordFPNMask(unsigned int FlashAddress)
 {
 }
 
+/*************************************************************************
+ * Function Name: SendCommand
+ *  Description: place holder for inheriting classes
+ *************************************************************************/
 void VisionChip::SendCommand(unsigned char cmd, unsigned char val)
 {
-  send((unsigned int)cmd, (unsigned int)val);
 }
 
+/*************************************************************************
+ * Function Name: ReadCommand
+*  Description: read command value - not currently implemented
+ *************************************************************************/
 void VisionChip::ReadCommand(unsigned char cmd)
 {
 }
 
+/*************************************************************************
+ * Function Name: GetFullFPNSize
+*  Description: compute the size for all vision chip fpn masks (relevant for 
+  visionchips with multiple resolutions) - use current resolution settings
+return: size of all arrays
+ *************************************************************************/
 unsigned int VisionChip::GetFullFPNSize()
 {
   
   unsigned int DataSize = 0;
   
+  // cycle through possible resolutions
   for (int r = MinRows; r <= MaxRows; r<<= 1)
   {
    for (int c = MinCols; c <= MaxCols; c<<=1)
     {
+      // compute array size and add to datasize variable
       DataSize += r*c;
     }
   }
+  // return size of all arrays
+  return DataSize;
 }
 
+/*************************************************************************
+ * Function Name: GetFPNMaskAddr
+*  Description: find flash memory location of fpn mask for a given array 
+ *************************************************************************/
 void VisionChip::GetFPNMaskAddr()
 {
   unsigned int FlashAddr = FLASH_ADDR_0;
+  // cycle through possible resolutions
    for (int r = MinRows; r <= MaxRows; r<<= 1)
   {
     for (int c = MinCols; c <= MaxCols; c<<=1)
     {
+      // increment address until desired resolution is reached
+      // (FPN masks are stored in order from smallest to largest)
       if((r == ResRows) && (c == ResCols))
       {
         FPNAddress = FlashAddr;
@@ -251,11 +192,18 @@ void VisionChip::GetFPNMaskAddr()
     }
   }
 }
+
+/*************************************************************************
+ * Function Name: GetDRC
+*  Description: compute Dynamic range compensation - expand pixel range to fill full
+      0-255 range
+ *************************************************************************/
 void VisionChip::GetDRC()
 {
   int RowIdx = 0;
   int MinPix = 255, MaxPix = 0;
   
+  // find minimum and maximum pixels
   for (int r = 1; r < ResRows-1; r++)
   {
     RowIdx = r * ResCols;
@@ -267,23 +215,34 @@ void VisionChip::GetDRC()
         MaxPix = RawImgBuf[RowIdx + c];
     }
   }
-      
+  
+  // apply DRC to current image buffer
   for(int Idx = 0; Idx  < ResRows*ResCols; Idx++)
-  {
     RawImgBuf[Idx]  = ((int)RawImgBuf[Idx] - MinPix) * 255 / (MaxPix - MinPix);
-     if(RawImgBuf[PixIdx] == ESC_CHAR)
-            RawImgBuf[PixIdx] --;
-  }
 }
+
+/*************************************************************************
+ * Function Name: SetAmpGain
+ *  Description: place holder for inheriting classes
+ *************************************************************************/
 void VisionChip::SetAmpGain(unsigned char gain)
 {
 }
+
+/*************************************************************************
+ * Function Name: SetPendingCommand
+ *  Description: set cmd and val to send after current pixel acquisition is complete
+ *************************************************************************/
 void VisionChip::SetPendingCommand(int cmd, int val)
 {
   PendingCmd = cmd;  PendingVal = val;
 }
+
+/*************************************************************************
+ * Function Name: SendPendingCommand
+ *  Description: place holder for inheriting classes
+ *************************************************************************/
 void VisionChip::SendPendingCommand()
 {
-  SendCommand(PendingCmd, PendingVal);
 }
 

@@ -1,12 +1,36 @@
-/*************************************************************************
- *
- *    Used with ICCARM and AARM.
- *
- *    Timers.cpp      
- *    Centeye,Inc
- *    Alison Leonard
- *    Aug 2, 2011
- **************************************************************************/
+/*
+ 
+ Timers.cpp : FPS timer and delay functions
+ Centeye, Inc
+ Created by Alison Leonard. August, 2011
+
+ ===============================================================================
+ Copyright (c) 2011, Centeye, Inc.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright
+ notice, this list of conditions and the following disclaimer.
+ * Redistributions in binary form must reproduce the above copyright
+ notice, this list of conditions and the following disclaimer in the
+ documentation and/or other materials provided with the distribution.
+ * Neither the name of Centeye, Inc. nor the
+ names of its contributors may be used to endorse or promote products
+ derived from this software without specific prior written permission.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL CENTEYE, INC. BE LIABLE FOR ANY
+ DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ ===============================================================================
+*/
 
 #include "Timers.h"
 #include "stm32f2xx.h"
@@ -14,24 +38,17 @@
 
 /*************************************************************************
  * Function Name: Constructor
- * Parameters: none
- *
- * Return: none
- *
  * Description: class initialization
  *
  *************************************************************************/
 Timers::Timers()
 {
   Toggle = false;
+  TimerOutEnable = USE_TIME_PIN_OUT;
 }
 
 /*************************************************************************
  * Function Name: Init
- * Parameters: none
- *
- * Return: none
- *
  * Description: initialize FPS timer settings.  This timer has a step size of 100us
  *
  *************************************************************************/
@@ -54,60 +71,59 @@ void Timers::Init()
  
   /* TIM Interrupts enable */
   TIM_UpdateRequestConfig(TIM2, TIM_UpdateSource_Regular);
-  //TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
 
   /* TIM3 enable counter */
   TIM_Cmd(TIM2, ENABLE);
   
-  // enable debug output pin
-  GPIO_InitStructure.GPIO_Pin =  TIMER_MASK;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-  GPIO_Init(TIMER_PORT, &GPIO_InitStructure);
+  // enable debug output pin if active
+  if(TimerOutEnable)
+  {
+    GPIO_InitStructure.GPIO_Pin =  TIMER_MASK;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+    GPIO_Init(TIMER_PORT, &GPIO_InitStructure);
+  }
 }
 
 
 /*************************************************************************
  * Function Name: GetFPS
- * Parameters: none
- *
- * Return: none
- *
  * Description: computes time elapsed since last called (max is 6.5s)
  *
  *************************************************************************/
 void Timers::GetFPS()
 {
-  
+  // get current time
   unsigned short CurrentTime = TIM2->CNT;
-  ElapsedTime = CurrentTime - LastTime;
+  // get elapsed time
+  unsigned int ElapsedTime = CurrentTime - LastTime;
+  // timer is in 100us steps
   unsigned int FPSInt = 10000 / ElapsedTime;
+  // Store in FPS array
   FPS[0] = FPSInt >> 8;
   FPS[1] = FPSInt & 0xFF;
+  // update LastTime
   LastTime = CurrentTime;
   
- // TIM_ClearFlag(TIM2, TIM_FLAG_Update);
-  Toggle = !Toggle;
-  if(Toggle)
-    TIMER_PORT->ODR |= TIMER_MASK;
-  else
-    TIMER_PORT->ODR &= ~TIMER_MASK;
-  
+  // toggle output on timer pin if active
+  if(TimerOutEnable)
+  {
+    Toggle = !Toggle;
+    if(Toggle)
+      TIMER_PORT->ODR |= TIMER_MASK;
+    else
+      TIMER_PORT->ODR &= ~TIMER_MASK;
+  }
 }
 
 /*************************************************************************
  * Function Name: Delay_us
- * Parameters: none
- *
- * Return: none
- *
- * Description: uses Timer3 to count a delay time
- *
+ * Description: uses instruction cycle burning to create delay - delay function is 
+ * imprecise, but relatively close (checked on oscilloscope)
  *************************************************************************/
 void Timers::Delay_us(unsigned int nTime)
 { 
   int TempVal;
-  
   
   for( int n = 0; n < nTime; n++)
     for(int i = 0; i < 17; i++)
@@ -117,18 +133,13 @@ void Timers::Delay_us(unsigned int nTime)
 
 /*************************************************************************
  * Function Name: Delay_s
- * Parameters: none
- *
- * Return: none
- *
- * Description: uses Timer3 to count a delay time
- *
+ * Description: uses instruction cycle burning to create delay - delay function is 
+ * imprecise, but relatively close (checked on oscilloscope)  
  *************************************************************************/
 void Timers::Delay_s(unsigned int nTime)
 { 
   int TempVal;
-  
-  
+   
   for( int n = 0; n < nTime; n++)
     for(int i = 0; i < 20000000; i++)
       TempVal = i;

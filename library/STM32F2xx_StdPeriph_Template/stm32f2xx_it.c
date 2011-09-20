@@ -27,7 +27,6 @@
 
 extern void SPIHandler(void);
 extern void ADCHandler(void);
-extern void TimerHandler(void);
 /** @addtogroup Template_Project
   * @{
   */
@@ -157,10 +156,7 @@ void ADC_IRQHandler(void)
 {
   ADCHandler();
 }
-void TIM2_IRQHandler(void)
-{ 
-  TimerHandler();
-}
+
 /**
   * @brief  This function handles PPP interrupt request.
   * @param  None
