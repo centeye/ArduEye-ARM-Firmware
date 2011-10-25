@@ -97,8 +97,6 @@ public:
   void RecordFPNMask(unsigned int FlashAddr= FLASH_ADDR_0);
   // send command to vision chip
   void SendCommand(unsigned char cmd, unsigned char val);
-  // read command from vision chip -- not currently implemented
-  void ReadCommand(unsigned char cmd);
   // find flash memory location of fpn mask for a given array 
   void GetFPNMaskAddr();
   // compute the size for all vision chip fpn masks (relevant for visionchips with multiple resolutions)

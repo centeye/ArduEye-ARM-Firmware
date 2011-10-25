@@ -76,18 +76,10 @@
 #define RAW_ROWS_MIN      14
 #define RAW_COLS_MIN      14
 
-// REGISTER DEFAULT SETTINGS
-#define AMP_GAIN_DEFAULT  5
-#define VREF_DEFAULT      30
-
-#define NBIAS_DEFAULT     55
-#define AOBIAS_DEFAULT    50
 
 //TIMING DEFAULT SETTINGS
 // time to wait between each pin toggle
 #define CMD_DELAY         0
-// time to wait before reading pixel value
-#define SETTLING_TIME_DEFAULT 3
 
 
 #endif

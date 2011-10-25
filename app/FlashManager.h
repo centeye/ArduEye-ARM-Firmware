@@ -32,6 +32,9 @@
  ===============================================================================
 */
 
+#ifndef FLASH_MANAGE_H
+#define FLASH_MANAGE_H
+
 #include "stm32f2xx_flash.h"
 #include "arm_comm.h"
 
@@ -51,7 +54,8 @@
 
 typedef enum {FAILED = 0, PASSED = !FAILED} TestStatus;
 
-#define FLASH_ADDR_0    ((uint32_t)0x08008000)
+#define FLASH_ADDR_0    ((uint32_t)0x08000000)
+#define FLASH_ADDR_11   ((uint32_t)0x080E0000)
 
 // FlashManager class manages reads and writes to on-chip flash memory
 class FlashManager{
@@ -71,3 +75,5 @@ public:
   // Erase Flash sector (erase is by sector only)
   FLASH_Status FlashErase(unsigned int DataSize, unsigned int StartAddr);
 };
+
+#endif

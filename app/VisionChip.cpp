@@ -41,8 +41,8 @@ VisionChip::VisionChip()
 {
   
   FPNAddress = FLASH_ADDR_0;
-  DRC_On = false;
-  FPN_On = false;
+  DRC_On = DRC_ON_DEFAULT;
+  FPN_On = FPN_ON_DEFAULT;
   PixFilled = false;
   
   RawImgBuf = ImgBufA;
@@ -134,14 +134,6 @@ void VisionChip::RecordFPNMask(unsigned int FlashAddress)
  *  Description: place holder for inheriting classes
  *************************************************************************/
 void VisionChip::SendCommand(unsigned char cmd, unsigned char val)
-{
-}
-
-/*************************************************************************
- * Function Name: ReadCommand
-*  Description: read command value - not currently implemented
- *************************************************************************/
-void VisionChip::ReadCommand(unsigned char cmd)
 {
 }
 

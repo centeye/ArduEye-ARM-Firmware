@@ -41,8 +41,6 @@
 #define OF_UP_SCALE            8
 #define OF_DOWN_SCALE          1
 
-// smoothing rate default
-#define OF_ALPHA_DEFAULT       1
 // default optic flow bins
 #define OF_DEFAULT_BINS        4
 
@@ -50,17 +48,11 @@
 #define OF_MIN_PIX_PER_BIN     4
 #define OF_MAX_BINS            16
 // maximum optic flow data size
-#define OF_MAX_DATA_SIZE       256
-// default high pass filter level
-#define HP_SHIFT_DEFAULT       5     
+#define OF_MAX_DATA_SIZE       256 
 
 // max/max/default local winner take all window size
 #define MAX_LWTA_WINSIZE       13
 #define MIN_LWTA_WINSIZE       5
-#define LWTA_WINSIZE_DEFAULT   9
-
-// local winner take all threshold (winner must be above threshold)
-#define LWTA_THRESH_DEFAULT    120
 
 // Image Processing is a general wrapper for multiple image processing functions
 class ImageProcessing{

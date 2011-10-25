@@ -32,6 +32,9 @@
  ===============================================================================
 */
 
+#ifndef DATA_COMM_H
+#define DATA_COMM_H
+
 #include "arm_comm.h"
 
 // packet flow control flags
@@ -56,25 +59,6 @@ const char ESC_CHAR =  38;
 #define MAX_DATASETS  6
 #define MAX_COMMAND_SIZE 8
 #define MAX_ESC_SIZE 2
-
-// cmd definitions
-#define WRITE_CMD  32
-#define DISPLAY_CMD 33
-#define STOP_CMD 35
-#define ACK_CMD 34
-#define READ_CMD 36
-#define CALIBRATE_CMD 70
-#define RESOLUTION_CMD 71
-#define OF_RESOLUTION_CMD 72
-#define OF_SMOOTHING_CMD 73
-#define DRC_ON_CMD  74
-#define FPN_ON_CMD 75
-#define AMP_GAIN_CMD 76
-#define HIGH_PASS_CMD 77
-#define SETTLING_TIME_CMD 78
-#define LWTA_THRESH_CMD 79
-#define LWTA_WIN_CMD 80
-#define VREF_CMD  81
 
 // data set ids
 #define DATA_ID_RAW   48
@@ -127,6 +111,11 @@ public:
   void SetDSActive(int inDSID, bool Enable);
   // update resolution for dataset
   void UpdateResolution(int inDSID, int Rows, int Cols);
+  // store most recent command value to flash memory
+  void UpdateCommand(int CommandID, char value);
+  // read command values from flash memory
+  void ReadCommands(void);
+ 
   
   //VARIABLES
   // size of currently txmitting dataset
@@ -153,3 +142,5 @@ private:
   int InitIdx, ActiveTx;
   
 };
+
+#endif

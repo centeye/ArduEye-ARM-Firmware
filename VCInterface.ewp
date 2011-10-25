@@ -1758,6 +1758,9 @@
   <group>
     <name>Content</name>
     <file>
+      <name>$PROJ_DIR$\app\CommandManager.cpp</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\app\DataComm.cpp</name>
     </file>
     <file>

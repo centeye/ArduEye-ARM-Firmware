@@ -45,6 +45,7 @@ DataManager::DataManager()
   DSIdx = 0;
   TxDataSize = 0;
   Mode = WRITE_MODE;
+ 
 }
 
 /*---------------------------------------------------------------
@@ -212,3 +213,4 @@ void DataManager::InitHeader(int inDSID)
     TxDataSize = 6;
   }
 }
+

@@ -70,6 +70,8 @@
 
 // keeps track of dataset settings and incoming cmd bytes
 DataManager Dat;
+// keeps track of command settings and command flash storage
+CommandManager Cmds;
 // class containing image processing algorithms
 ImageProcessing ImgP;
 // class containing timers and delay functions
@@ -81,7 +83,7 @@ bool SPI_Done = FALSE;
 // flag to record fpn mask on next data acquisition loop
 bool RecordFPN = false;
 // flag to send command, update resolution on next data acquisition loop
-bool ResolutionUpdateRequest = false, CMDUpdateRequest = false;
+bool ResolutionUpdateRequest = false, CMDUpdateRequest = false, FlashCmdUpdateRequest = false;
 // main Vision Chip class.  Currently implemented vision chips are StonyMan, Firefly, TAM
 Stonyman VC;
 // defined as an extern in arm_comm.h
@@ -118,6 +120,8 @@ void ParseCommand(void)
   {
     // WRITE_CMD precedes all settingss changes
   case WRITE_CMD:
+     Cmds.SetPendingUpdate(Dat.Cmd.Bytes[1], Dat.Cmd.Bytes[2]);
+     FlashCmdUpdateRequest = true;
     switch (Dat.Cmd.Bytes[1]){
     case CALIBRATE_CMD:
       // Set flag to record calibration mask on next process loop
@@ -179,10 +183,6 @@ void ParseCommand(void)
   case STOP_CMD:
     // set data type to inActive
     Dat.SetDSActive(Dat.Cmd.Bytes[1], false);
-    break;
-  case READ_CMD:
-    // read command / setting value
-    VC.ReadCommand(Dat.Cmd.Bytes[1]);
     break;
   case SOH_CHAR:
     // start of header character - alerts sensor to send header data
@@ -281,6 +281,35 @@ void SPIHandler(void)
       }
     }
   }
+}
+
+/*************************************************************************
+ * Function Name: SetDefaultCommandValues
+ * Description: Set Sensor settings to default values stored in flash memory
+ *		
+ *************************************************************************/
+void SetDefaultCommandValues()
+{
+  // use the ParseCommand Function by storing command values in Dat.Cmd.Bytes
+  Dat.Cmd.Bytes[0] = WRITE_CMD;
+  // cycle through all commands stored in flash
+  for (int i = 0; i < NUM_READABLE_COMMANDS; i++)
+  {
+    Dat.Cmd.Bytes[1] = Cmds.CommandDump[i*2];
+    Dat.Cmd.Bytes[2] = Cmds.CommandDump[i*2 + 1];
+    // the parse command function takes care of appropriate cmd setting actions
+    ParseCommand();
+    // send commands to vision chip if appropriate.  the ParseCommand function sets 
+    // a flag to send the commands in the next computation loop, but for initialization
+    // we want to send the command right away
+    if(CMDUpdateRequest)
+    {
+      VC.SendPendingCommand();
+      CMDUpdateRequest = false;
+    }
+  }
+  // commands do not need to be stored in flash as they have not been updated
+  FlashCmdUpdateRequest = false;
 }
 
 /*************************************************************************
@@ -383,14 +412,19 @@ void InitIRQs(void)
   RCC_AHB1PeriphClockCmd( RCC_AHB1Periph_GPIOA | RCC_AHB1Periph_GPIOB
                            | RCC_AHB1Periph_GPIOC, ENABLE);
  
-  // initialize gpios and interrupts
-  InitGPIOs();
-  VC.InitGPIOs_Timers(TimE);
-  InitIRQs();
-  
-  // set flash read latency
+   // set flash read latency
   // latency setting defined by chip clock and voltage range
   FLASH_SetLatency(FLASH_Latency_3);
+  // initialize command storage class (pull command values from flash memory
+  Cmds.Init();
+  // set command values to their defaults
+  SetDefaultCommandValues();
+  
+  // initialize gpios 
+  InitGPIOs();
+  VC.InitGPIOs_Timers(TimE);
+  // initialize interrupts
+  InitIRQs();
   
   // ADC configuration
   ADC_CommonInitStructure.ADC_Mode = ADC_Mode_Independent;
@@ -450,6 +484,7 @@ void InitIRQs(void)
   Dat.InitDS(DATA_ID_OF, ImgP.NumBins[0], ImgP.NumBins[1]*2, (unsigned char *)ImgP.OpticFlowScale);
   Dat.InitDS(DATA_ID_FPS, 1, 2, TimE.FPS);
   Dat.InitDS(DATA_ID_MAXES, 1, 2, ImgP.MaxPoints);
+  Dat.InitDS(DATA_CMD_VAL, 2,  NUM_READABLE_COMMANDS, (unsigned char *)Cmds.CommandDump);
   
   // raise flag to indicate that sensor boot is complete.  
   RDY_PORT->ODR |= RDY_MASK;
@@ -484,6 +519,12 @@ void InitIRQs(void)
     {
       VC.SendPendingCommand();
       CMDUpdateRequest = false;
+    }
+    // store pending commands to flash (commands sent asyncronously could interfere with image readout)
+    if(FlashCmdUpdateRequest)
+    {
+      Cmds.UpdatePending();
+      FlashCmdUpdateRequest = false;
     }
     // get new frame
     VC.ReadRawImage();

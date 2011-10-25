@@ -118,7 +118,7 @@ FLASH_Status FlashManager::FlashErase(unsigned int DataSize, unsigned int StartA
                   FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR|FLASH_FLAG_PGSERR); 
 
   /* Erase the FLASH pages */
-  for(EraseCounter = StartSector; (EraseCounter < EndSector) && (FLASHStatus == FLASH_COMPLETE); EraseCounter+=8)
+  for(EraseCounter = StartSector; (EraseCounter <= EndSector) && (FLASHStatus == FLASH_COMPLETE); EraseCounter+=8)
   {
     FLASHStatus = FLASH_EraseSector(EraseCounter, VoltageRange_3);
   }

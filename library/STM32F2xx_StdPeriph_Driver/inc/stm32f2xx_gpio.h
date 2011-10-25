@@ -181,7 +181,7 @@ typedef struct
   */ 
 
 
-/** @defgroup GPIO_Pin_sources 
+ /** @defgroup GPIO_Pin_sources 
   * @{
   */ 
 #define GPIO_PinSource0            ((uint8_t)0x00)

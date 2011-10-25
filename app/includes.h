@@ -30,5 +30,6 @@
 #include "DataComm.h"
 #include "Timers.h"
 #include "ImageProcessing.h"
+#include "CommandManager.h"
 
 #endif /* __INCLUDES_H */
