@@ -57,7 +57,7 @@
 #define LED_MASK      GPIO_Pin_2
 #define LED_PORT      GPIOB
 
-// RD2 Pin - not being used in firmware but is broken out on ArduEye
+// RD2 Pin - used to indicate Arduino boot up
 #define RDY2_MASK     GPIO_Pin_4
 #define RDY2_PORT     GPIOC
 
@@ -330,14 +330,15 @@ void InitGPIOs(void)
   GPIO_InitStructure.GPIO_Pin =  LED_MASK;
   GPIO_Init(LED_PORT, &GPIO_InitStructure);
   
-  GPIO_InitStructure.GPIO_Pin =  RDY2_MASK;
-  GPIO_Init(RDY2_PORT, &GPIO_InitStructure);
-  
   GPIO_InitStructure.GPIO_Pin =  SDA_MASK;
   GPIO_Init(SDA_PORT, &GPIO_InitStructure);
   
   GPIO_InitStructure.GPIO_Pin =  SCL_MASK;
   GPIO_Init(SCL_PORT, &GPIO_InitStructure);
+  
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+  GPIO_InitStructure.GPIO_Pin =  RDY2_MASK;
+  GPIO_Init(RDY2_PORT, &GPIO_InitStructure);
   
   // Analog input pin, remove pullup resistor
   GPIO_InitStructure.GPIO_Pin =  AN_MASK;
@@ -454,8 +455,8 @@ void InitIRQs(void)
   // Enable ADC1
   ADC_Cmd(ADC1, ENABLE);
   
-  // delay to allow time for arduino to startup
-  TimE.Delay_s(5);
+  // wait for bootup signal from Arduino before initializing SPI
+  while((RDY2_PORT->IDR & RDY2_MASK) != RDY2_MASK);
   
   // initialize spi
   SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;

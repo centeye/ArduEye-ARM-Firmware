@@ -28,7 +28,7 @@ ActionState=1
 Enabled=0
 ShowSource=1
 [DebugChecksum]
-Checksum=1491078948
+Checksum=-294967694
 [DisAssemblyWindow]
 NumStates=_ 1
 State 1=_ 1
@@ -48,12 +48,6 @@ Graph=0
 Symbiont=0
 [BreakpointUsageDialog]
 Placement=_ 2182 461 2619 739
-[Disassemble mode]
-mode=0
-[Breakpoints]
-Bp0=_ "STD_CODE" "{$PROJ_DIR$\library\STM32F2xx_StdPeriph_Template\stm32f2xx_it.c}.75.3@1" 1 0 0 0 "" 0 ""
-Bp1=_ "STD_CODE" "{$PROJ_DIR$\library\STM32F2xx_StdPeriph_Template\stm32f2xx_it.c}.62.3@1" 1 0 0 0 "" 0 ""
-Count=2
 [Log file]
 LoggingEnabled=_ 0
 LogFile=_ ""
@@ -61,6 +55,12 @@ Category=_ 0
 [TermIOLog]
 LoggingEnabled=_ 0
 LogFile=_ ""
+[Disassemble mode]
+mode=0
+[Breakpoints]
+Bp0=_ "STD_CODE" "{$PROJ_DIR$\library\STM32F2xx_StdPeriph_Template\stm32f2xx_it.c}.75.3@1" 1 0 0 0 "" 0 ""
+Bp1=_ "STD_CODE" "{$PROJ_DIR$\library\STM32F2xx_StdPeriph_Template\stm32f2xx_it.c}.62.3@1" 1 0 0 0 "" 0 ""
+Count=2
 [Aliases]
 A0=_ "F:\Dropbox\VCInterfaceEval\app\main.cpp" "C:\Users\Alison Leonard\Dropbox\VCInterfaceEval\app\main.cpp"
 A1=_ "F:\Dropbox\VCInterfaceEval\library\CMSIS\CM3\DeviceSupport\ST\STM32F2xx\startup\iar\startup_stm32f2xx.s" "F:\IAR\ArduEye-ARM-Firmware\library\CMSIS\CM3\DeviceSupport\ST\STM32F2xx\startup\arm\startup_stm32f2xx.s"
